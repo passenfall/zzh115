@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passen ZZH - 个人博客</title>
+  <link rel="preconnect" href="https://fonts.loli.net">
+  <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+  <link href="https://fonts.loli.net/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <script src="data.js"></script>
+  <style>
+    :root {
+      --primary: #4285F4;
+      --primary-light: #669DF6;
+      --primary-dark: #1A73E8;
+      --secondary: #34A853;
+      --accent: #EA4335;
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F8F9FA;
+      --bg-tertiary: #E8EAED;
+      --text-primary: #3C4043;
+      --text-secondary: #5F6368;
+      --text-muted: #80868B;
+      --border-color: #DADCE0;
+      --shadow-sm: 0 1px 3px rgba(60,64,67,0.08);
+      --shadow-md: 0 4px 12px rgba(60,64,67,0.12);
+      --shadow-lg: 0 8px 24px rgba(60,64,67,0.16);
+      --shadow-glow: 0 0 40px rgba(66,133,244,0.15);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --sidebar-width: 260px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="dark"] {
+      --primary: #669DF6;
+      --primary-light: #8AB4F8;
+      --primary-dark: #4285F4;
+      --bg-primary: #1E1E1E;
+      --bg-secondary: #252525;
+      --bg-tertiary: #2D2D2D;
+      --text-primary: #E8EAED;
+      --text-secondary: #BDC1C6;
+      --text-muted: #9AA0A6;
+      --border-color: #3C4043;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+      --shadow-glow: 0 0 40px rgba(102,157,246,0.2);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      transition: background 0.4s ease, color 0.4s ease;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .gradient-bg {
+      position: fixed;
+      top: 0;
+      left: var(--sidebar-width);
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.35;
+    }
+
+    .gradient-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+    }
+
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(66,133,244,0.14) 0%, transparent 70%); top: -150px; right: -100px; }
+    .orb-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(52,168,83,0.09) 0%, transparent 70%); bottom: -80px; left: 50px; }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-height: 100vh;
+      background: var(--bg-primary);
+      border-right: 1px solid var(--border-color);
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 20px;
+      transition: background 0.4s ease, border-color 0.4s ease;
+      overflow-y: auto;
+    }
+
+    .sidebar-brand {
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 28px;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(66,133,244,0.3);
+    }
+
+    .logo-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      flex: 1;
+    }
+
+    .sidebar-nav li {
+      margin-bottom: 4px;
+    }
+
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.92rem;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .sidebar-nav a:hover {
+      background: rgba(66,133,244,0.07);
+      color: var(--primary);
+    }
+
+    .sidebar-nav a.active {
+      background: linear-gradient(135deg, rgba(66,133,244,0.12), rgba(52,168,83,0.08));
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-color);
+      transition: var(--transition);
+    }
+
+    .sidebar-nav a:hover .nav-dot,
+    .sidebar-nav a.active .nav-dot {
+      background: var(--primary);
+      box-shadow: 0 0 8px rgba(66,133,244,0.5);
+    }
+
+    .sidebar-footer {
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+      margin-top: auto;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 9px 0;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: var(--transition);
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .action-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(66,133,244,0.06);
+    }
+
+    .social-links-sidebar {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .social-link-sm {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      font-size: 0.88rem;
+      transition: var(--transition);
+    }
+
+    .social-link-sm:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      min-width: 0;
+      min-height: 100vh;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* View Panels */
+    .view-panel {
+      display: none;
+      padding: 60px 48px;
+      max-width: 980px;
+      width: 100%;
+      min-height: 100vh;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .view-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile Toggle */
+    .mobile-toggle {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 200;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 1.2rem;
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(10px);
+    }
+
+    /* Hero Section (Home View) */
+    .hero-container {
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+      padding-top: 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      background: linear-gradient(135deg, rgba(66,133,244,0.1), rgba(52,168,83,0.1));
+      border: 1px solid rgba(66,133,244,0.2);
+      border-radius: 100px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: var(--primary-dark);
+      margin-bottom: 26px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--secondary);
+    }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 4.5vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text-primary), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-tagline {
+      font-size: 1.22rem;
+      color: var(--text-secondary);
+      margin-bottom: 18px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .hero-bio {
+      font-size: 1.02rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      margin-bottom: 34px;
+      max-width: 500px;
+    }
+
+    .hero-buttons { display: flex; gap: 14px; flex-wrap: wrap; }
+
+    .btn {
+      padding: 13px 30px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 2px solid transparent;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 4px 14px rgba(66,133,244,0.35);
+    }
+
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(66,133,244,0.45); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+
+    .btn-secondary:hover { border-color: var(--primary); color: var(--primary); background: rgba(66,133,244,0.05); transform: translateY(-3px); }
+
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .avatar-wrapper { position: relative; width: 320px; height: 320px; }
+
+    .avatar-ring {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--primary), var(--secondary), var(--accent), var(--primary));
+      opacity: 0.65;
+    }
+
+    .avatar-container {
+      position: relative;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      background: var(--bg-secondary);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+    }
+
+    .avatar-image { width: 100%; height: 100%; object-fit: cover; }
+
+    .avatar-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 4.8rem; font-weight: 700; color: var(--primary);
+      background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+    }
+
+    /* Float Cards */
+    .float-card {
+      position: absolute;
+      padding: 14px 20px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+      z-index: 10;
+      animation: floatCardIn 0.6s ease backwards;
+    }
+    .float-card.fc-1 { bottom: -10px; left: -50px; animation-delay: 0.3s; }
+    .float-card.fc-2 { top: -10px; right: -40px; animation-delay: 0.5s; }
+    @keyframes floatCardIn { from { opacity: 0; transform: translateY(16px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .fc-title { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+    .fc-sub { font-size: 0.76rem; color: var(--text-muted); }
+
+    /* Section Header */
+    .section-header { text-align: center; margin-bottom: 56px; padding-top: 40px; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.86rem; font-weight: 600; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: clamp(1.9rem, 3.5vw, 2.6rem);
+      font-weight: 750; letter-spacing: -0.025em; margin-bottom: 14px;
+    }
+
+    .section-desc { font-size: 1.05rem; color: var(--text-secondary); max-width: 520px; margin: 0 auto; }
+
+    /* Blog View */
+    #blog-view {
+      background: var(--bg-secondary);
+      max-width: none;
+      width: calc(100vw - 260px);
+      padding-left: calc((100vw - 260px - 980px) / 2 + 48px);
+      padding-right: calc((100vw - 260px - 980px) / 2 + 48px);
+    }
+
+    #blog-view .section-header {
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 24px;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    .article-card {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .article-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+      border-color: rgba(66,133,244,0.25);
+    }
+
+    .article-cover {
+      width: 100%; height: 190px;
+      object-fit: cover;
+      background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem; color: var(--text-muted);
+    }
+
+    .article-body { padding: 24px; }
+
+    .article-meta-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+
+    .article-category {
+      display: inline-flex; padding: 5px 13px;
+      background: rgba(66,133,244,0.09); color: var(--primary-dark);
+      border-radius: 100px; font-size: 0.8rem; font-weight: 600;
+    }
+
+    .article-date { font-size: 0.8rem; color: var(--text-muted); }
+
+    .article-title {
+      font-size: 1.2rem; font-weight: 700; margin-bottom: 9px;
+      line-height: 1.38; letter-spacing: -0.01em; transition: var(--transition);
+    }
+
+    .article-card:hover .article-title { color: var(--primary); }
+
+    .article-summary {
+      font-size: 0.91rem; color: var(--text-secondary);
+      line-height: 1.62; margin-bottom: 16px;
+      display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    .article-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 14px; border-top: 1px solid var(--border-color);
+    }
+
+    .read-more {
+      color: var(--primary); font-weight: 600; font-size: 0.9rem;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition);
+    }
+
+    .read-more:hover { gap: 10px; }
+    .read-time { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* Projects View */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
+      gap: 24px;
+    }
+
+    .project-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: var(--transition);
+    }
+
+    .project-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: rgba(66,133,244,0.2); }
+
+    .project-header { display: flex; align-items: start; justify-content: space-between; margin-bottom: 16px; }
+
+    .project-icon {
+      width: 48px; height: 48px; border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(66,133,244,0.12), rgba(52,168,83,0.08));
+      display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+    }
+
+    .project-link {
+      color: var(--primary); text-decoration: none; font-size: 1.25rem; transition: var(--transition);
+    }
+
+    .project-link:hover { transform: translateX(4px); }
+
+    .project-name { font-size: 1.22rem; font-weight: 700; margin-bottom: 9px; letter-spacing: -0.01em; }
+
+    .project-desc { font-size: 0.91rem; color: var(--text-secondary); line-height: 1.62; margin-bottom: 18px; }
+
+    .project-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+
+    .tag {
+      padding: 5px 12px; background: var(--bg-secondary);
+      border: 1px solid var(--border-color); border-radius: 100px;
+      font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); transition: var(--transition);
+    }
+
+    .tag:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* About View */
+    #about-view { text-align: center; }
+    .about-content { max-width: 680px; margin: 0 auto; }
+    .about-text { font-size: 1.06rem; color: var(--text-secondary); line-height: 1.82; margin-bottom: 30px; }
+
+    /* Footer View */
+    #footer-view {
+      background: var(--bg-secondary);
+      max-width: none;
+      width: calc(100vw - 260px);
+      padding-left: calc((100vw - 260px - 980px) / 2 + 48px);
+      padding-right: calc((100vw - 260px - 980px) / 2 + 48px);
+    }
+
+    #footer-view .section-header {
+      max-width: 980px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .footer-content {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 40px;
+    }
+
+    .footer-brand h3 { font-size: 1.18rem; font-weight: 700; margin-bottom: 10px; }
+    .footer-brand p { font-size: 0.89rem; color: var(--text-secondary); line-height: 1.58; }
+
+    .footer-links h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 14px; color: var(--text-primary); }
+    .footer-links ul { list-style: none; }
+    .footer-links li { margin-bottom: 9px; }
+    .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.87rem; transition: var(--transition); cursor: pointer; }
+    .footer-links a:hover { color: var(--primary); }
+
+    .footer-bottom {
+      max-width: 980px; margin: 32px auto 0;
+      padding-top: 20px; border-top: 1px solid var(--border-color);
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.84rem; color: var(--text-muted);
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .hero-container { grid-template-columns: 1fr; text-align: center; gap: 44px; }
+      .hero-bio { margin-left: auto; margin-right: auto; }
+      .hero-buttons { justify-content: center; }
+      .avatar-wrapper { width: 260px; height: 260px; }
+      .blog-grid { grid-template-columns: repeat(2, 1fr); }
+      .projects-grid { grid-template-columns: 1fr; }
+      .footer-content { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+      .main-content { margin-left: 0; }
+      .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+      #blog-view, #footer-view { 
+        width: 100%; 
+        padding-left: 24px; 
+        padding-right: 24px; 
+      }
+      .view-panel { padding: 80px 24px 60px; }
+      .hero-title { font-size: 2rem; }
+      .blog-grid, .projects-grid { grid-template-columns: 1fr; }
+      .footer-content { grid-template-columns: 1fr; text-align: center; }
+      .footer-bottom { flex-direction: column; gap: 14px; }
+      .gradient-bg { left: 0; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .btn { width: 100%; justify-content: center; }
+      .avatar-wrapper { width: 200px; height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a class="sidebar-logo" id="sidebarLogo" onclick="switchView('hero')">
+        <div class="logo-icon" id="sidebarLogoIcon">P</div>
+        <span class="logo-text" id="sidebarLogoText">Passen ZZH</span>
+      </a>
+    </div>
+
+    <ul class="sidebar-nav" id="sidebarNav"></ul>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-actions">
+        <button class="action-btn" id="langBtn" onclick="toggleLanguage()">🌐 中/EN</button>
+        <button class="action-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+      </div>
+      <div class="social-links-sidebar" id="sidebarSocial"></div>
+    </div>
+  </aside>
+
+  <div class="gradient-bg">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+  </div>
+
+  <main class="main-content">
+    <!-- Home View -->
+    <div class="view-panel active" id="hero-view">
+      <div class="hero-container">
+        <div class="hero-content">
+          <div class="hero-badge"><span class="badge-dot"></span><span id="heroBadge">欢迎来到我的空间</span></div>
+          <h1 class="hero-title" id="heroTitle">Passen ZZH</h1>
+          <p class="hero-tagline" id="heroTagline">开发者 | 写作者 | 探索者</p>
+          <p class="hero-bio" id="heroBio">你好！我是一名对 Web 技术和 AI 充满热情的开发者，在这里记录学习与思考。</p>
+          <div class="hero-buttons" id="heroButtons"></div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="avatar-wrapper">
+            <div class="avatar-ring"></div>
+            <div class="avatar-container" id="avatarContainer">
+              <div class="avatar-placeholder" id="avatarPlaceholder">P</div>
+            </div>
+            <div class="float-card fc-1" id="floatCard1">
+              <div class="fc-title" id="fc1Title">Clean Code</div>
+              <div class="fc-sub" id="fc1Sub">优雅的代码</div>
+            </div>
+            <div class="float-card fc-2" id="floatCard2">
+              <div class="fc-title" id="fc2Title">Open Source</div>
+              <div class="fc-sub" id="fc2Sub">开源精神</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blog View -->
+    <div class="view-panel" id="blog-view">
+      <div class="section-header">
+        <div class="section-label" id="blogLabel">精选博文</div>
+        <h2 class="section-title" id="blogTitle">最新文章</h2>
+        <p class="section-desc" id="blogDesc">探索技术、分享思考、记录成长</p>
+      </div>
+      <div class="blog-grid" id="blogGrid"></div>
+    </div>
+
+    <!-- Projects View -->
+    <div class="view-panel" id="projects-view">
+      <div class="section-header">
+        <div class="section-label" id="projLabel">作品集</div>
+        <h2 class="section-title" id="projTitle">我的项目</h2>
+        <p class="section-desc" id="projDesc">实践出真知，代码见真章</p>
+      </div>
+      <div class="projects-grid" id="projectsGrid"></div>
+    </div>
+
+    <!-- About View -->
+    <div class="view-panel" id="about-view">
+      <div class="about-content">
+        <div class="section-header">
+          <div class="section-label" id="aboutLabel">关于我</div>
+          <h2 class="section-title" id="aboutTitle">更多关于 Passen ZZH</h2>
+          <p class="section-desc" id="aboutDesc"></p>
+        </div>
+        <p class="about-text" id="aboutText"></p>
+      </div>
+    </div>
+
+    <!-- Footer View -->
+    <div class="view-panel" id="footer-view">
+      <div class="section-header">
+        <div class="section-label" id="footerLabel">联系与信息</div>
+        <h2 class="section-title" id="footerTitle">联系方式</h2>
+      </div>
+      <div class="footer-content">
+        <div class="footer-brand">
+          <h3 id="footerBrandName">Passen ZZH 的博客</h3>
+          <p id="footerBrandDesc">记录技术探索之路，分享开发心得体会。</p>
+        </div>
+        <div class="footer-links">
+          <h4 id="footerNavTitle">导航</h4>
+          <ul id="footerNavList"></ul>
+        </div>
+        <div class="footer-links">
+          <h4 id="footerSocialTitle">社交</h4>
+          <ul id="footerSocialList"></ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span id="copyright">© 2025 Passen ZZH. All rights reserved.</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let lang = 'zh', theme = 'light';
+    let currentView = 'hero';
+
+    function initTheme() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      theme = saved || (prefersDark ? 'dark' : 'light');
+      applyTheme();
+    }
+
+    function applyTheme() {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('themeBtn').textContent = theme === 'dark' ? '☀️' : '🌙';
+      localStorage.setItem('theme', theme);
+    }
+
+    function toggleTheme() { theme = theme === 'dark' ? 'light' : 'dark'; applyTheme(); }
+    function toggleLanguage() { lang = lang === 'zh' ? 'en' : 'zh'; renderAll(); }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    function t(obj, k, ke) { return lang === 'en' && obj[ke] ? obj[ke] : obj[k]; }
+
+    function switchView(viewId) {
+      currentView = viewId;
+      
+      document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+      const targetPanel = document.getElementById(viewId + '-view');
+      if (targetPanel) targetPanel.classList.add('active');
+
+      document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+      const activeNav = document.querySelector(`.sidebar-nav a[data-view="${viewId}"]`);
+      if (activeNav) activeNav.classList.add('active');
+
+      document.getElementById('sidebar').classList.remove('open');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hrefToView(href) {
+      if (!href) return 'hero';
+      return href.replace('#', '');
+    }
+
+    function renderAll() {
+      try {
+        const d = BlogData.getData();
+        
+        if (!d) {
+          console.error('无法获取数据');
+          return;
+        }
+
+        document.getElementById('sidebarLogoText').textContent = d.profile?.name || 'Passen ZZH';
+        document.getElementById('sidebarLogoIcon').textContent = (d.profile?.name || 'P').charAt(0);
+
+        if (d.navigation && d.navigation.length > 0) {
+          document.getElementById('sidebarNav').innerHTML = d.navigation.map((item, i) => {
+            const viewId = hrefToView(item.href);
+            const isActive = viewId === currentView;
+            return `<li><a data-view="${viewId}" onclick="switchView('${viewId}')" class="${isActive ? 'active' : ''}"><span class="nav-dot"></span>${t(item, 'label', 'labelEn')}</a></li>`;
+          }).join('');
+        } else {
+          document.getElementById('sidebarNav').innerHTML = `
+            <li><a data-view="hero" onclick="switchView('hero')" class="active"><span class="nav-dot"></span>首页</a></li>
+            <li><a data-view="blog" onclick="switchView('blog')"><span class="nav-dot"></span>博客</a></li>
+            <li><a data-view="projects" onclick="switchView('projects')"><span class="nav-dot"></span>项目</a></li>
+            <li><a data-view="about" onclick="switchView('about')"><span class="nav-dot"></span>关于</a></li>
+            <li><a data-view="footer" onclick="switchView('footer')"><span class="nav-dot"></span>联系</a></li>
+          `;
+        }
+
+        if (d.socialLinks && d.socialLinks.length > 0) {
+          document.getElementById('sidebarSocial').innerHTML = d.socialLinks.map(s => {
+            const m = { github: '⌘', twitter: '✦', linkedin: 'in', email: '✉' };
+            return `<a href="${s.url}" target="_blank" class="social-link-sm" title="${s.name}">${m[s.icon] || s.icon}</a>`;
+          }).join('');
+        }
+
+        document.getElementById('heroBadge').textContent = lang === 'zh' ? (d.hero?.badge || '欢迎来到我的空间') : (d.hero?.badgeEn || 'Welcome to my space');
+
+        document.getElementById('fc1Title').textContent = lang === 'zh' ? (d.hero?.floatText1 || 'Clean Code') : (d.hero?.floatText1En || 'Clean Code');
+        document.getElementById('fc1Sub').textContent = lang === 'zh' ? (d.hero?.floatSub1 || '优雅的代码') : (d.hero?.floatSub1En || 'Elegant code');
+        document.getElementById('fc2Title').textContent = lang === 'zh' ? (d.hero?.floatText2 || 'Open Source') : (d.hero?.floatText2En || 'Open Source');
+        document.getElementById('fc2Sub').textContent = lang === 'zh' ? (d.hero?.floatSub2 || '开源精神') : (d.hero?.floatSub2En || 'Open spirit');
+        document.getElementById('heroTitle').textContent = d.profile?.name || 'Passen ZZH';
+        document.getElementById('heroTagline').textContent = t(d.profile || {}, 'tagline', 'taglineEn') || (lang === 'zh' ? '开发者 | 写作者 | 探索者' : 'Developer | Writer | Explorer');
+        document.getElementById('heroBio').textContent = t(d.profile || {}, 'bio', 'bioEn') || (lang === 'zh' ? '你好！我是一名对 Web 技术和 AI 充满热情的开发者，在这里记录学习与思考。' : 'Hi! I\'m a developer passionate about web technology and AI, here to record my learning and thoughts.');
+
+        if (d.profile?.buttons && d.profile.buttons.length > 0) {
+          document.getElementById('heroButtons').innerHTML = d.profile.buttons.map(b => {
+            const cls = b.type === 'primary' ? 'btn-primary' : 'btn-secondary';
+            const link = (b.link || '#').trim();
+            const isExternal = /^(https?:\/\/|mailto:|tel:)/i.test(link);
+            if (isExternal) {
+              return `<a href="${link}" target="_blank" rel="noopener noreferrer" class="btn ${cls}">${t(b, 'text', 'textEn')}</a>`;
+            }
+            const viewId = hrefToView(link);
+            return `<a onclick="switchView('${viewId}')" class="btn ${cls}">${t(b, 'text', 'textEn')}</a>`;
+          }).join('');
+        }
+
+        const avEl = document.getElementById('avatarContainer');
+        if (d.profile?.avatar) avEl.innerHTML = `<img src="${d.profile.avatar}" alt="" class="avatar-image">`;
+        else avEl.innerHTML = `<div class="avatar-placeholder">${(d.profile?.name || 'P').charAt(0)}</div>`;
+
+        document.getElementById('blogLabel').textContent = lang === 'zh' ? (d.sections?.blogLabel || '精选博文') : (d.sections?.blogLabelEn || 'Featured Posts');
+        document.getElementById('blogTitle').textContent = lang === 'zh' ? (d.sections?.blogTitle || '最新文章') : (d.sections?.blogTitleEn || 'Latest Articles');
+        document.getElementById('blogDesc').textContent = lang === 'zh' ? (d.sections?.blogDesc || '探索技术、分享思考、记录成长') : (d.sections?.blogDescEn || 'Explore tech, share thoughts, record growth');
+
+        if (d.articles && d.articles.length > 0) {
+          document.getElementById('blogGrid').innerHTML = d.articles.map(a => `
+            <article class="article-card" onclick="showArticle(${a.id})">
+              <div class="article-cover">${a.coverImage ? `<img src="${a.coverImage}" style="width:100%;height:100%;object-fit:cover;">` : '📝'}</div>
+              <div class="article-body">
+                <div class="article-meta-top">
+                  <span class="article-category">${t(a, 'category', 'categoryEn')}</span>
+                  <span class="article-date">${a.date}</span>
+                </div>
+                <h3 class="article-title">${t(a, 'title', 'titleEn')}</h3>
+                <p class="article-summary">${t(a, 'summary', 'summaryEn')}</p>
+                <div class="article-footer">
+                  <span class="read-more">${lang === 'zh' ? '阅读更多 →' : 'Read More →'}</span>
+                  <span class="read-time">${t(a, 'readTime', 'readTimeEn')}</span>
+                </div>
+              </div>
+            </article>
+          `).join('');
+        }
+
+        document.getElementById('projLabel').textContent = lang === 'zh' ? (d.sections?.projLabel || '作品集') : (d.sections?.projLabelEn || 'Portfolio');
+        document.getElementById('projTitle').textContent = lang === 'zh' ? (d.sections?.projTitle || '我的项目') : (d.sections?.projTitleEn || 'My Projects');
+        document.getElementById('projDesc').textContent = lang === 'zh' ? (d.sections?.projDesc || '实践出真知，代码见真章') : (d.sections?.projDescEn || 'Practice makes perfect, code speaks truth');
+
+        if (d.projects && d.projects.length > 0) {
+          document.getElementById('projectsGrid').innerHTML = d.projects.map(p => `
+            <div class="project-card">
+              <div class="project-header">
+                <div class="project-icon">🚀</div>
+                ${p.url !== '#' ? `<a href="${p.url}" target="_blank" class="project-link">→</a>` : ''}
+              </div>
+              <h3 class="project-name">${t(p, 'name', 'nameEn')}</h3>
+              <p class="project-desc">${t(p, 'description', 'descriptionEn')}</p>
+              <div class="project-tags">${(p.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+            </div>
+          `).join('');
+        }
+
+        document.getElementById('aboutLabel').textContent = lang === 'zh' ? (d.sections?.aboutLabel || '关于我') : (d.sections?.aboutLabelEn || 'About Me');
+        document.getElementById('aboutTitle').textContent = lang === 'zh' ? (d.sections?.aboutTitle || '更多关于 Passen ZZH') : (d.sections?.aboutTitleEn || 'More About Passen ZZH');
+        document.getElementById('aboutDesc').textContent = lang === 'zh' ? (d.sections?.aboutDesc || '') : (d.sections?.aboutDescEn || '');
+        document.getElementById('aboutText').innerHTML = lang === 'zh'
+          ? (d.about?.text || '热爱技术，追求卓越。我相信好的代码如同好的文章，应当简洁、清晰且富有表现力。<br>在这里，我分享技术见解、项目经验和个人思考。欢迎交流与探讨。')
+          : (d.about?.textEn || 'Passionate about technology, pursuing excellence. I believe good code is like good writing—concise, clear, and expressive.<br>Here I share technical insights, project experiences, and personal thoughts. Welcome to connect.');
+
+        document.getElementById('footerLabel').textContent = lang === 'zh' ? (d.sections?.footerLabel || '联系与信息') : (d.sections?.footerLabelEn || 'Contact & Info');
+        document.getElementById('footerTitle').textContent = lang === 'zh' ? (d.sections?.footerTitle || '联系方式') : (d.sections?.footerTitleEn || 'Contact Info');
+        document.getElementById('footerBrandName').textContent = t(d.siteConfig || {}, 'siteName', 'siteNameEn') || (lang === 'zh' ? 'Passen ZZH 的博客' : 'Passen ZZH\'s Blog');
+        document.getElementById('footerBrandDesc').textContent = lang === 'zh' ? (d.footer?.brandDesc || '记录技术探索之路，分享开发心得体会。') : (d.footer?.brandDescEn || 'Documenting the journey of tech exploration, sharing development insights.');
+        document.getElementById('footerNavTitle').textContent = lang === 'zh' ? (d.sections?.footerNavTitle || '导航') : (d.sections?.footerNavTitleEn || 'Navigation');
+        document.getElementById('footerSocialTitle').textContent = lang === 'zh' ? (d.sections?.footerSocialTitle || '社交') : (d.sections?.footerSocialTitleEn || 'Social');
+
+        if (d.navigation && d.navigation.length > 0) {
+          document.getElementById('footerNavList').innerHTML = d.navigation.map(item => {
+            const viewId = hrefToView(item.href);
+            return `<li><a onclick="switchView('${viewId}')">${t(item, 'label', 'labelEn')}</a></li>`;
+          }).join('');
+        }
+
+        if (d.socialLinks && d.socialLinks.length > 0) {
+          document.getElementById('footerSocialList').innerHTML = d.socialLinks.map(s =>
+            `<li><a href="${s.url}" target="_blank">${s.name}</a></li>`
+          ).join('');
+        }
+
+        document.getElementById('copyright').textContent = t(d.siteConfig || {}, 'copyright', 'copyrightEn') || '© 2025 Passen ZZH. All rights reserved.';
+      } catch (e) {
+        console.error('渲染错误:', e);
+      }
+    }
+
+    function showArticle(id) {
+      const d = BlogData.getData(), a = d.articles.find(x => x.id === id);
+      if (!a) return;
+      alert(lang === 'zh'
+        ? `【${a.title}】\n\n${a.summary}\n\n发布日期：${a.date}\n阅读时间：${a.readTime}`
+        : `【${a.titleEn}】\n\n${a.summaryEn}\n\nDate：${a.date}\nRead time：${a.readTimeEn}`
+      );
+    }
+
+    initTheme();
+    renderAll();
+  </script>
+</body>
+</html>

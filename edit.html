@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>博客管理后台 - Passen ZZH</title>
+  <link rel="preconnect" href="https://fonts.loli.net">
+  <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+  <link href="https://fonts.loli.net/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <script src="data.js"></script>
+  <style>
+    :root {
+      --primary: #4285F4;
+      --primary-dark: #1A73E8;
+      --secondary: #34A853;
+      --accent: #EA4335;
+      --bg-primary: #F5F6FA;
+      --bg-card: #FFFFFF;
+      --bg-sidebar: #1a1f36;
+      --text-primary: #1a1a2e;
+      --text-secondary: #555770;
+      --text-muted: #9498aa;
+      --border-color: #e2e4ea;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --sidebar-w: 248px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', 'Noto Sans SC', -apple-system, sans-serif;
+      background: var(--bg-primary); color: var(--text-primary);
+      line-height: 1.6; display: flex; min-height: 100vh;
+    }
+
+    .sidebar {
+      width: var(--sidebar-w); background: var(--bg-sidebar); color: white;
+      padding: 28px 16px; position: fixed; left: 0; top: 0; bottom: 0;
+      z-index: 100; display: flex; flex-direction: column; overflow-y: auto;
+      transition: transform 0.3s ease;
+    }
+    .sb-brand { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .sb-sub { font-size: 0.78rem; color: rgba(255,255,255,0.38); margin-bottom: 32px; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 16px; border-radius: var(--radius-sm); cursor: pointer;
+      margin-bottom: 3px; font-weight: 500; font-size: 0.9rem;
+      color: rgba(255,255,255,0.58); transition: all 0.2s ease;
+      border: none; background: transparent; width: 100%; text-align: left; font-family: inherit;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: white; }
+    .nav-item.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white; box-shadow: 0 4px 12px rgba(66,133,244,0.35);
+    }
+    .ni-icon { font-size: 1.05rem; width: 20px; text-align: center; }
+
+    .sb-footer { margin-top: auto; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .preview-btn {
+      width: 100%; padding: 12px; border-radius: var(--radius-sm);
+      border: 1px solid rgba(255,255,255,0.22); background: transparent;
+      color: white; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+      transition: all 0.2s ease; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .preview-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); }
+
+    .main-content { flex: 1; margin-left: var(--sidebar-w); padding: 28px 36px; max-width: 1100px; min-width: 0; }
+
+    .page-hd { margin-bottom: 28px; }
+    .page-title { font-size: 1.6rem; font-weight: 750; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .page-desc { font-size: 0.9rem; color: var(--text-muted); }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: panelIn 0.3s ease; }
+    @keyframes panelIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card {
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color); padding: 26px;
+      margin-bottom: 20px; box-shadow: var(--shadow-sm);
+    }
+    .card-title {
+      font-size: 1rem; font-weight: 650; margin-bottom: 20px;
+      padding-bottom: 14px; border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; gap: 9px;
+    }
+
+    .fg { margin-bottom: 18px; }
+    .fl { display: block; font-size: 0.84rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .fi, .ft, .fs {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm); font-size: 0.9rem; font-family: inherit;
+      color: var(--text-primary); background: var(--bg-card); transition: all 0.2s ease; outline: none;
+    }
+    .fi:focus, .ft:focus, .fs:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(66,133,244,0.1); }
+    .ft { min-height: 90px; resize: vertical; line-height: 1.6; }
+    .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .btn {
+      padding: 10px 24px; border-radius: var(--radius-sm); font-weight: 600;
+      font-size: 0.87rem; cursor: pointer; transition: all 0.2s ease;
+      border: none; font-family: inherit; display: inline-flex; align-items: center; gap: 7px;
+    }
+    .btn-p { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; box-shadow: 0 3px 10px rgba(66,133,244,0.3); }
+    .btn-p:hover { transform: translateY(-2px); box-shadow: 0 5px 16px rgba(66,133,244,0.42); }
+    .btn-s { background: var(--bg-primary); color: var(--text-primary); border: 1.5px solid var(--border-color); }
+    .btn-s:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-d { background: #fee2e2; color: #dc2626; border: 1.5px solid #fecaca; }
+    .btn-d:hover { background: #dc2626; color: white; border-color: #dc2626; }
+    .btn-g { background: linear-gradient(135deg, var(--secondary), #2d9c46); color: white; }
+    .btn-g:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(52,168,83,0.35); }
+    .btn-sm { padding: 7px 14px; font-size: 0.82rem; border-radius: 6px; }
+    .bg { display: flex; gap: 8px; margin-top: 16px; }
+
+    .avatar-up { display: flex; align-items: center; gap: 18px; }
+    .avatar-prev {
+      width: 80px; height: 80px; border-radius: 50%; overflow: hidden;
+      border: 3px solid var(--border-color); background: var(--bg-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; font-weight: 700; color: var(--primary);
+    }
+    .avatar-prev img { width: 100%; height: 100%; object-fit: cover; }
+    .file-btn {
+      display: inline-block; padding: 9px 18px; background: var(--bg-primary);
+      border: 1.5px dashed var(--border-color); border-radius: var(--radius-sm);
+      cursor: pointer; font-size: 0.84rem; color: var(--text-secondary); transition: all 0.2s ease; text-align: center;
+    }
+    .file-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(66,133,244,0.04); }
+    input[type="file"] { display: none; }
+    .url-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 5px; }
+
+    /* List items */
+    .list-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px; border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm); margin-bottom: 8px;
+      background: var(--bg-primary); transition: all 0.2s ease;
+    }
+    .list-item:hover { border-color: rgba(66,133,244,0.25); }
+    .list-item input {
+      flex: 1; padding: 7px 11px; border: 1px solid var(--border-color);
+      border-radius: 6px; font-size: 0.84rem; font-family: inherit; outline: none;
+    }
+    .list-item input:focus { border-color: var(--primary); }
+    .bi { width: auto; min-width: 0; max-width: 140px; }
+    .add-row-btn {
+      padding: 9px 0; border: 1.5px dashed var(--border-color); border-radius: var(--radius-sm);
+      background: transparent; color: var(--text-muted); cursor: pointer;
+      font-size: 0.84rem; font-weight: 600; transition: all 0.2s ease;
+      font-family: inherit; width: 100%; margin-top: 6px;
+    }
+    .add-row-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(66,133,244,0.04); }
+
+    .bi-btn {
+      width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--border-color);
+      background: var(--bg-card); cursor: pointer; font-size: 0.88rem;
+      transition: all 0.2s ease; color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .bi-btn:hover { background: var(--bg-primary); border-color: var(--primary); color: var(--primary); }
+    .bi-btn.danger:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+
+    /* Article / Project list */
+    .item-list { list-style: none; }
+    .item-row {
+      display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 14px;
+      padding: 15px 18px; border: 1px solid var(--border-color);
+      border-radius: var(--radius-md); margin-bottom: 10px;
+      background: var(--bg-card); transition: all 0.2s ease;
+    }
+    .item-row:hover { border-color: rgba(66,133,244,0.25); box-shadow: var(--shadow-sm); }
+    .item-info h4 { font-size: 0.94rem; font-weight: 600; margin-bottom: 3px; }
+    .item-info p { font-size: 0.8rem; color: var(--text-muted); }
+    .item-meta { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+    .item-actions { display: flex; gap: 7px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+      z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--bg-card); border-radius: var(--radius-lg);
+      width: 100%; max-width: 640px; max-height: 82vh; overflow-y: auto;
+      padding: 28px; box-shadow: var(--shadow-md);
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .modal-title { font-size: 1.15rem; font-weight: 700; }
+    .modal-close {
+      width: 34px; height: 34px; border-radius: 50%; border: none;
+      background: var(--bg-primary); cursor: pointer; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease; color: var(--text-secondary);
+    }
+    .modal-close:hover { background: var(--accent); color: white; }
+
+    /* Toast */
+    .toast-wrap { position: fixed; top: 20px; right: 20px; z-index: 2000; }
+    .toast {
+      background: #1a1a2e; color: white; padding: 13px 22px; border-radius: var(--radius-sm);
+      font-size: 0.88rem; font-weight: 500; margin-bottom: 8px;
+      box-shadow: var(--shadow-md); animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+      display: flex; align-items: center; gap: 9px;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(30px); } }
+    .toast.ok { border-left: 4px solid var(--secondary); }
+    .toast.err { border-left: 4px solid var(--accent); }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state-icon { font-size: 2.6rem; margin-bottom: 12px; opacity: 0.35; }
+
+    select.fi { padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.84px; }
+
+    .mobile-toggle {
+      display: none; position: fixed; top: 14px; left: 14px; z-index: 101;
+      width: 42px; height: 42px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color); background: var(--bg-sidebar);
+      color: white; cursor: pointer; font-size: 1.2rem; box-shadow: var(--shadow-md);
+    }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; padding: 20px; }
+      .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+      .fr { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <button class="mobile-toggle" onclick="toggleSb()">☰</button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">⚡ 管理后台</div>
+    <div class="sb-sub">Passen ZZH Blog CMS</div>
+
+    <button class="nav-item active" data-p="profile" onclick="go('profile')"><span class="ni-icon">👤</span> 个人资料</button>
+    <button class="nav-item" data-p="hero" onclick="go('hero')"><span class="ni-icon">🎯</span> Hero 区域</button>
+    <button class="nav-item" data-p="blog" onclick="go('blog')"><span class="ni-icon">📝</span> 博客文章</button>
+    <button class="nav-item" data-p="projects" onclick="go('projects')"><span class="ni-icon">🚀</span> 项目管理</button>
+    <button class="nav-item" data-p="about" onclick="go('about')"><span class="ni-icon">💬</span> 关于区域</button>
+    <button class="nav-item" data-p="footer" onclick="go('footer')"><span class="ni-icon">📋</span> 页脚设置</button>
+    <button class="nav-item" data-p="site" onclick="go('site')"><span class="ni-icon">⚙️</span> 站点配置</button>
+
+    <div class="sb-footer">
+      <button class="preview-btn" onclick="window.open('display.html','_blank')">👁️ 预览展示页</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- ====== 个人资料 ====== -->
+    <div class="panel active" id="p-profile">
+      <div class="page-hd"><h1 class="page-title">👤 个人资料</h1><p class="page-desc">编辑你的姓名、头像、简介和行动按钮</p></div>
+
+      <div class="card">
+        <div class="card-title">📸 头像设置</div>
+        <div class="avatar-up">
+          <div class="avatar-prev" id="avPrev">P</div>
+          <div style="flex:1;">
+            <label class="file-btn" for="avInput">点击上传图片 或 拖拽到此处</label>
+            <input type="file" id="avInput" accept="image/*" onchange="onAvUpload(event)">
+            <input type="text" class="fi" id="avUrl" placeholder="或输入图片 URL" style="margin-top:8px;" onchange="updateAvFromUrl()">
+            <div class="url-hint">支持本地文件上传或外部 URL 链接</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">✏️ 基本信息</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">姓名（中文）</label><input class="fi" id="pfName"></div>
+          <div class="fg"><label class="fl">姓名（English）</label><input class="fi" id="pfNameEn"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标语（中文）</label><input class="fi" id="pfTagline" placeholder="开发者 | 写作者 | 探索者"></div>
+          <div class="fg"><label class="fl">标语（English）</label><input class="fi" id="pfTaglineEn" placeholder="Developer | Writer | Explorer"></div>
+        </div>
+        <div class="fg"><label class="fl">个人简介（中文）</label><textarea class="ft" id="pfBio" rows="3"></textarea></div>
+        <div class="fg"><label class="fl">个人简介（English）</label><textarea class="ft" id="pfBioEn" rows="3"></textarea></div>
+        <div class="bg"><button class="btn btn-p" onclick="saveProfile()">💾 保存修改</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔘 行动按钮（Hero 区 CTA）</div>
+        <div id="btnEditor"></div>
+        <button class="add-row-btn" onclick="addBtnRow()">+ 添加按钮</button>
+        <div class="bg"><button class="btn btn-p" onclick="saveBtns()">💾 保存按钮</button></div>
+      </div>
+    </div>
+
+    <!-- ====== Hero 区域 ====== -->
+    <div class="panel" id="p-hero">
+      <div class="page-hd"><h1 class="page-title">🎯 Hero 区域</h1><p class="page-desc">编辑首页主视觉区域的徽章文字和浮动卡片内容</p></div>
+
+      <div class="card">
+        <div class="card-title">🏷️ 徽章文字</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">徽章（中文）</label><input class="fi" id="hBadge" placeholder="欢迎来到我的空间"></div>
+          <div class="fg"><label class="fl">Badge（English）</label><input class="fi" id="hBadgeEn" placeholder="Welcome to my space"></div>
+        </div>
+        <div class="bg"><button class="btn btn-p" onclick="saveHero()">💾 保存</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🃏 浮动卡片 1（左下）</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标题（中文）</label><input class="fi" id="hFT1" value="Clean Code"></div>
+          <div class="fg"><label class="fl">Title（EN）</label><input class="fi" id="hFT1En" value="Clean Code"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">副标题（中文）</label><input class="fi" id="hFS1" value="优雅的代码"></div>
+          <div class="fg"><label class="fl">Subtitle（EN）</label><input class="fi" id="hFS1En" value="Elegant code"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🃏 浮动卡片 2（右上）</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标题（中文）</label><input class="fi" id="hFT2" value="Open Source"></div>
+          <div class="fg"><label class="fl">Title（EN）</label><input class="fi" id="hFT2En" value="Open Source"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">副标题（中文）</label><input class="fi" id="hFS2" value="开源精神"></div>
+          <div class="fg"><label class="fl">Subtitle（EN）</label><input class="fi" id="hFS2En" value="Open spirit"></div>
+        </div>
+        <div class="bg"><button class="btn btn-p" onclick="saveHero()">💾 保存浮动卡片</button></div>
+      </div>
+    </div>
+
+    <!-- ====== 博客文章 ====== -->
+    <div class="panel" id="p-blog">
+      <div class="page-hd">
+        <h1 class="page-title">📝 博客管理</h1>
+        <p class="page-desc">编辑博客区域标题描述，以及管理所有文章</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📌 博客区域标题与描述</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标签（中文）</label><input class="fi" id="secBlogLb"></div>
+          <div class="fg"><label class="fl">Label（EN）</label><input class="fi" id="secBlogLbEn"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标题（中文）</label><input class="fi" id="secBlogTi"></div>
+          <div class="fg"><label class="fl">Title（EN）</label><input class="fi" id="secBlogTiEn"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">描述（中文）</label><input class="fi" id="secBlogDe"></div>
+          <div class="fg"><label class="fl">Description（EN）</label><input class="fi" id="secBlogDeEn"></div>
+        </div>
+        <div class="bg"><button class="btn btn-p" onclick="saveSecBlog()">💾 保存区域设置</button></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div class="card-title" style="margin-bottom:0;padding-bottom:0;border:none;">📄 文章列表</div>
+          <button class="btn btn-g btn-sm" onclick="openArtModal()">+ 新建文章</button>
+        </div>
+        <ul class="item-list" id="artList"></ul>
+      </div>
+    </div>
+
+    <!-- ====== 项目管理 ====== -->
+    <div class="panel" id="p-projects">
+      <div class="page-hd">
+        <h1 class="page-title">🚀 项目管理</h1>
+        <p class="page-desc">编辑项目区域标题描述，以及管理所有项目</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📌 项目区域标题与描述</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标签（中文）</label><input class="fi" id="secProjLb"></div>
+          <div class="fg"><label class="fl">Label（EN）</label><input class="fi" id="secProjLbEn"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标题（中文）</label><input class="fi" id="secProjTi"></div>
+          <div class="fg"><label class="fl">Title（EN）</label><input class="fi" id="secProjTiEn"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">描述（中文）</label><input class="fi" id="secProjDe"></div>
+          <div class="fg"><label class="fl">Description（EN）</label><input class="fi" id="secProjDeEn"></div>
+        </div>
+        <div class="bg"><button class="btn btn-p" onclick="saveSecProj()">💾 保存区域设置</button></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div class="card-title" style="margin-bottom:0;padding-bottom:0;border:none;">📦 项目列表</div>
+          <button class="btn btn-g btn-sm" onclick="openProjModal()">+ 新建项目</button>
+        </div>
+        <ul class="item-list" id="projList"></ul>
+      </div>
+    </div>
+
+    <!-- ====== 关于区域 ====== -->
+    <div class="panel" id="p-about">
+      <div class="page-hd"><h1 class="page-title">💬 关于区域</h1><p class="page-desc">编辑「关于我」区块的标题、标签和正文内容</p></div>
+
+      <div class="card">
+        <div class="card-title">📌 区域标题设置</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标签（中文）</label><input class="fi" id="secAbtLb"></div>
+          <div class="fg"><label class="fl">Label（EN）</label><input class="fi" id="secAbtLbEn"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标题（中文）</label><input class="fi" id="secAbtTi"></div>
+          <div class="fg"><label class="fl">Title（EN）</label><input class="fi" id="secAbtTiEn"></div>
+        </div>
+        <div class="bg"><button class="btn btn-p" onclick="saveSecAbout()">💾 保存标题设置</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 区域描述</div>
+        <div class="fg"><label class="fl">描述（中文）</label><input class="fi" id="secAbtDe" placeholder="简短描述..."></div>
+        <div class="fg"><label class="fl">Description（EN）</label><input class="fi" id="secAbtDeEn" placeholder="Brief description..."></div>
+        <div class="bg"><button class="btn btn-p" onclick="saveSecAboutDesc()">💾 保存描述</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📝 正文内容</div>
+        <div class="fg"><label class="fl">正文（中文，支持 &lt;br&gt; 换行）</label><textarea class="ft" id="abtText" rows="5"></textarea></div>
+        <div class="fg"><label class="fl">Text（English, supports &lt;br&gt; for line breaks）</label><textarea class="ft" id="abtTextEn" rows="5"></textarea></div>
+        <div class="bg"><button class="btn btn-p" onclick="saveAbout()">💾 保存正文</button></div>
+      </div>
+    </div>
+
+    <!-- ====== 页脚设置 ====== -->
+    <div class="panel" id="p-footer">
+      <div class="page-hd"><h1 class="page-title">📋 页脚设置</h1><p class="page-desc">编辑页脚区域的标签、标题、品牌描述等信息</p></div>
+
+      <div class="card">
+        <div class="card-title">🏷️ 区域标题</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标签（中文）</label><input class="fi" id="ftLabel" placeholder="联系与信息"></div>
+          <div class="fg"><label class="fl">Label（EN）</label><input class="fi" id="ftLabelEn" placeholder="Contact & Info"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">标题（中文）</label><input class="fi" id="ftTitle" placeholder="联系方式"></div>
+          <div class="fg"><label class="fl">Title（EN）</label><input class="fi" id="ftTitleEn" placeholder="Contact Info"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📦 栏目标题</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">导航栏标题（中文）</label><input class="fi" id="ftNavTi" placeholder="导航"></div>
+          <div class="fg"><label class="fl">Nav Title（EN）</label><input class="fi" id="ftNavTiEn" placeholder="Navigation"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">社交栏标题（中文）</label><input class="fi" id="ftSocTi" placeholder="社交"></div>
+          <div class="fg"><label class="fl">Social Title（EN）</label><input class="fi" id="ftSocTiEn" placeholder="Social"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏠 品牌描述</div>
+        <div class="fg"><label class="fl">描述（中文）</label><input class="fi" id="ftBrandDe" placeholder="记录技术探索之路..."></div>
+        <div class="fg"><label class="fl">Description（EN）</label><input class="fi" id="ftBrandDeEn" placeholder="Documenting the journey..."></div>
+        <div class="bg"><button class="btn btn-p" onclick="saveFooter()">💾 保存页脚</button></div>
+      </div>
+    </div>
+
+    <!-- ====== 站点配置 ====== -->
+    <div class="panel" id="p-site">
+      <div class="page-hd"><h1 class="page-title">⚙️ 站点配置</h1><p class="page-desc">全局站点名称、版权声明和数据重置</p></div>
+
+      <div class="card">
+        <div class="card-title">🌐 站点信息</div>
+        <div class="fr">
+          <div class="fg"><label class="fl">网站名称（中文）</label><input class="fi" id="scName"></div>
+          <div class="fg"><label class="fl">Site Name（EN）</label><input class="fi" id="scNameEn"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">版权声明（中文）</label><input class="fi" id="scCopyZh"></div>
+          <div class="fg"><label class="fl">Copyright（EN）</label><input class="fi" id="scCopyEn"></div>
+        </div>
+        <div class="bg"><button class="btn btn-p" onclick="saveSiteCfg()">💾 保存配置</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔄 数据管理</div>
+        <p style="font-size:0.87rem;color:var(--text-muted);margin-bottom:14px;">
+          重置所有数据为默认值。此操作将清除所有自定义内容且不可撤销！
+        </p>
+        <button class="btn btn-d" onclick="resetData()">⚠️ 重置全部数据</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Article Modal -->
+  <div class="modal-overlay" id="artModal">
+    <div class="modal">
+      <div class="modal-header"><h2 class="modal-title" id="artMTtl">新建文章</h2><button class="modal-close" onclick="closeArtModal()">✕</button></div>
+      <input type="hidden" id="editArtId">
+      <div class="fg"><label class="fl">标题（中文）</label><input class="fi" id="artT" placeholder="文章标题"></div>
+      <div class="fg"><label class="fl">标题（English）</label><input class="fi" id="artTEn" placeholder="Article Title"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">分类（中文）</label><input class="fi" id="artCat" placeholder="前端 / 设计 / 技术"></div>
+        <div class="fg"><label class="fl">Category（EN）</label><input class="fi" id="artCatEn" placeholder="Frontend / Design / Tech"></div>
+      </div>
+      <div class="fg"><label class="fl">摘要（中文）</label><textarea class="ft" id="artSum" rows="3" placeholder="文章简短摘要..."></textarea></div>
+      <div class="fg"><label class="fl">摘要（English）</label><textarea class="ft" id="artSumEn" rows="3" placeholder="Brief summary..."></textarea></div>
+      <div class="fg"><label class="fl">封面图 URL（可选）</label><input class="fi" id="artCover" placeholder="https://example.com/cover.jpg"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">阅读时间（中文）</label><input class="fi" id="artRT" placeholder="5 分钟"></div>
+        <div class="fg"><label class="fl">Read Time（EN）</label><input class="fi" id="artRTEn" placeholder="5 min read"></div>
+      </div>
+      <div class="bg"><button class="btn btn-p" onclick="saveArt()">💾 保存文章</button><button class="btn btn-s" onclick="closeArtModal()">取消</button></div>
+    </div>
+  </div>
+
+  <!-- Project Modal -->
+  <div class="modal-overlay" id="projModal">
+    <div class="modal">
+      <div class="modal-header"><h2 class="modal-title" id="projMTtl">新建项目</h2><button class="modal-close" onclick="closeProjModal()">✕</button></div>
+      <input type="hidden" id="editProjId">
+      <div class="fr">
+        <div class="fg"><label class="fl">项目名（中文）</label><input class="fi" id="projN" placeholder="项目名称"></div>
+        <div class="fg"><label class="fl">Project Name（EN）</label><input class="fi" id="projNEn" placeholder="Project Name"></div>
+      </div>
+      <div class="fg"><label class="fl">描述（中文）</label><textarea class="ft" id="projD" rows="3" placeholder="项目简短描述..."></textarea></div>
+      <div class="fg"><label class="fl">Description（EN）</label><textarea class="ft" id="projDEn" rows="3" placeholder="Brief description..."></textarea></div>
+      <div class="fg"><label class="fl">技术标签（逗号分隔）</label><input class="fi" id="projTags" placeholder="HTML, CSS, JavaScript"></div>
+      <div class="fg"><label class="fl">项目链接</label><input class="fi" id="projUrl" placeholder="https://..."></div>
+      <div class="fg"><label class="fl">封面图 URL（可选）</label><input class="fi" id="projImg" placeholder="https://example.com/image.jpg"></div>
+      <div class="bg"><button class="btn btn-p" onclick="saveProj()">💾 保存项目</button><button class="btn btn-s" onclick="closeProjModal()">取消</button></div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+    let cp = 'profile';
+
+    function go(p) {
+      cp = p;
+      document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+      document.getElementById('p-' + p).classList.add('active');
+      document.querySelector(`[data-p="${p}"]`).classList.add('active');
+      document.getElementById('sidebar').classList.remove('open');
+      loadP(p);
+    }
+
+    function toggleSb() { document.getElementById('sidebar').classList.toggle('open'); }
+
+    function toast(msg, t='ok') {
+      const w = document.getElementById('toastWrap');
+      const el = document.createElement('div');
+      el.className = `toast ${t}`;
+      el.innerHTML = `<span>${t==='ok'?'✅':'❌'}</span><span>${msg}</span>`;
+      w.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }
+
+    // ========== LOADERS ==========
+
+    function loadP(p) {
+      const d = BlogData.getData();
+      if (p === 'profile') {
+        document.getElementById('pfName').value = d.profile.name || '';
+        document.getElementById('pfNameEn').value = d.profile.nameEn || '';
+        document.getElementById('pfTagline').value = d.profile.tagline || '';
+        document.getElementById('pfTaglineEn').value = d.profile.taglineEn || '';
+        document.getElementById('pfBio').value = d.profile.bio || '';
+        document.getElementById('pfBioEn').value = d.profile.bioEn || '';
+        document.getElementById('avUrl').value = d.profile.avatar || '';
+        const prev = document.getElementById('avPrev');
+        if (d.profile.avatar) prev.innerHTML = `<img src="${d.profile.avatar}">`;
+        else prev.textContent = (d.profile.name || 'P').charAt(0);
+        renderBtns(d.profile.buttons);
+      } else if (p === 'hero') {
+        document.getElementById('hBadge').value = d.hero?.badge || '';
+        document.getElementById('hBadgeEn').value = d.hero?.badgeEn || '';
+        document.getElementById('hFT1').value = d.hero?.floatText1 || 'Clean Code';
+        document.getElementById('hFT1En').value = d.hero?.floatText1En || 'Clean Code';
+        document.getElementById('hFS1').value = d.hero?.floatSub1 || '优雅的代码';
+        document.getElementById('hFS1En').value = d.hero?.floatSub1En || 'Elegant code';
+        document.getElementById('hFT2').value = d.hero?.floatText2 || 'Open Source';
+        document.getElementById('hFT2En').value = d.hero?.floatText2En || 'Open Source';
+        document.getElementById('hFS2').value = d.hero?.floatSub2 || '开源精神';
+        document.getElementById('hFS2En').value = d.hero?.floatSub2En || 'Open spirit';
+      } else if (p === 'blog') {
+        document.getElementById('secBlogLb').value = d.sections?.blogLabel || '';
+        document.getElementById('secBlogLbEn').value = d.sections?.blogLabelEn || '';
+        document.getElementById('secBlogTi').value = d.sections?.blogTitle || '';
+        document.getElementById('secBlogTiEn').value = d.sections?.blogTitleEn || '';
+        document.getElementById('secBlogDe').value = d.sections?.blogDesc || '';
+        document.getElementById('secBlogDeEn').value = d.sections?.blogDescEn || '';
+        renderArts();
+      } else if (p === 'projects') {
+        document.getElementById('secProjLb').value = d.sections?.projLabel || '';
+        document.getElementById('secProjLbEn').value = d.sections?.projLabelEn || '';
+        document.getElementById('secProjTi').value = d.sections?.projTitle || '';
+        document.getElementById('secProjTiEn').value = d.sections?.projTitleEn || '';
+        document.getElementById('secProjDe').value = d.sections?.projDesc || '';
+        document.getElementById('secProjDeEn').value = d.sections?.projDescEn || '';
+        renderProjs();
+      } else if (p === 'about') {
+        document.getElementById('secAbtLb').value = d.sections?.aboutLabel || '';
+        document.getElementById('secAbtLbEn').value = d.sections?.aboutLabelEn || '';
+        document.getElementById('secAbtTi').value = d.sections?.aboutTitle || '';
+        document.getElementById('secAbtTiEn').value = d.sections?.aboutTitleEn || '';
+        document.getElementById('secAbtDe').value = d.sections?.aboutDesc || '';
+        document.getElementById('secAbtDeEn').value = d.sections?.aboutDescEn || '';
+        document.getElementById('abtText').value = d.about?.text || '';
+        document.getElementById('abtTextEn').value = d.about?.textEn || '';
+      } else if (p === 'footer') {
+        document.getElementById('ftBrandDe').value = d.footer?.brandDesc || '';
+        document.getElementById('ftBrandDeEn').value = d.footer?.brandDescEn || '';
+        document.getElementById('ftLabel').value = d.sections?.footerLabel || '';
+        document.getElementById('ftLabelEn').value = d.sections?.footerLabelEn || '';
+        document.getElementById('ftTitle').value = d.sections?.footerTitle || '';
+        document.getElementById('ftTitleEn').value = d.sections?.footerTitleEn || '';
+        document.getElementById('ftNavTi').value = d.sections?.footerNavTitle || '';
+        document.getElementById('ftNavTiEn').value = d.sections?.footerNavTitleEn || '';
+        document.getElementById('ftSocTi').value = d.sections?.footerSocialTitle || '';
+        document.getElementById('ftSocTiEn').value = d.sections?.footerSocialTitleEn || '';
+      } else if (p === 'site') {
+        document.getElementById('scName').value = d.siteConfig?.siteName || '';
+        document.getElementById('scNameEn').value = d.siteConfig?.siteNameEn || '';
+        document.getElementById('scCopyZh').value = d.siteConfig?.copyright || '';
+        document.getElementById('scCopyEn').value = d.siteConfig?.copyrightEn || '';
+      }
+    }
+
+    // ========== PROFILE ==========
+
+    function onAvUpload(e) {
+      const f = e.target.files[0]; if (!f) return;
+      new FileReader().onload = ev => {
+        document.getElementById('avPrev').innerHTML = `<img src="${ev.target.result}">`;
+        document.getElementById('avUrl').value = ev.target.result;
+      };
+      new FileReader().readAsDataURL(f);
+    }
+
+    function updateAvFromUrl() {
+      const url = document.getElementById('avUrl').value.trim();
+      const prev = document.getElementById('avPrev');
+      prev.innerHTML = url ? `<img src="${url}" onerror="this.parentElement.textContent='${document.getElementById('pfName').value.charAt(0)||'P'}'">` : (document.getElementById('pfName').value||'P').charAt(0);
+    }
+
+    function saveProfile() {
+      BlogData.updateProfile({
+        name: document.getElementById('pfName').value,
+        nameEn: document.getElementById('pfNameEn').value,
+        tagline: document.getElementById('pfTagline').value,
+        taglineEn: document.getElementById('pfTaglineEn').value,
+        bio: document.getElementById('pfBio').value,
+        bioEn: document.getElementById('pfBioEn').value,
+        avatar: document.getElementById('avUrl').value.trim()
+      });
+      toast('个人资料已保存！');
+    }
+
+    function renderBtns(btns) {
+      document.getElementById('btnEditor').innerHTML = btns.map((b,i) => `
+        <div class="list-item" id="br${i}">
+          <input placeholder="按钮文字（中文）" value="${b.text||''}" data-f="text" data-i="${i}">
+          <input class="bi" placeholder="Text (EN)" value="${b.textEn||''}" data-f="textEn" data-i="${i}">
+          <input class="bi" placeholder="链接 (#projects 或 https://...)" value="${b.link||''}" data-f="link" data-i="${i}">
+          <select data-f="type" data-i="${i}" style="padding:7px 10px;border:1px solid var(--border-color);border-radius:6px;font-size:0.82px;font-family:inherit;">
+            <option value="primary" ${b.type==='primary'?'selected':''}>主要按钮</option>
+            <option ${b.type!=='primary'?'selected':''}>次要按钮</option>
+          </select>
+          <button class="bi-btn danger" onclick="rmBtn(${i})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function addBtnRow() {
+      const d = BlogData.getData(); d.profile.buttons.push({text:'',textEn:'',link:'#',type:'secondary'}); BlogData.saveData(d); renderBtns(d.profile.buttons); }
+    function rmBtn(i) { const d = BlogData.getData(); d.profile.buttons.splice(i,1); BlogData.saveData(d); renderBtns(d.profile.buttons); }
+
+    function saveBtns() {
+      const d = BlogData.getData();
+      const rows = document.querySelectorAll('#btnEditor .list-item');
+      d.profile.buttons = Array.from(rows).map(r => ({
+        text: r.querySelector('[data-f="text"]').value,
+        textEn: r.querySelector('[data-f="textEn"]').value,
+        link: r.querySelector('[data-f="link"]').value,
+        type: r.querySelector('[data-f="type"]').value
+      }));
+      BlogData.saveData(d);
+      toast('按钮已保存！');
+    }
+
+    // ========== HERO ==========
+
+    function saveHero() {
+      BlogData.updateHero({
+        badge: document.getElementById('hBadge').value,
+        badgeEn: document.getElementById('hBadgeEn').value,
+        floatText1: document.getElementById('hFT1').value,
+        floatText1En: document.getElementById('hFT1En').value,
+        floatSub1: document.getElementById('hFS1').value,
+        floatSub1En: document.getElementById('hFS1En').value,
+        floatText2: document.getElementById('hFT2').value,
+        floatText2En: document.getElementById('hFT2En').value,
+        floatSub2: document.getElementById('hFS2').value,
+        floatSub2En: document.getElementById('hFS2En').value
+      });
+      toast('Hero 区域已保存！');
+    }
+
+    // ========== SECTIONS ==========
+
+    function saveSecBlog() {
+      BlogData.updateSections({
+        blogLabel: document.getElementById('secBlogLb').value,
+        blogLabelEn: document.getElementById('secBlogLbEn').value,
+        blogTitle: document.getElementById('secBlogTi').value,
+        blogTitleEn: document.getElementById('secBlogTiEn').value,
+        blogDesc: document.getElementById('secBlogDe').value,
+        blogDescEn: document.getElementById('secBlogDeEn').value
+      }); toast('博客区域已保存！');
+    }
+
+    function saveSecProj() {
+      BlogData.updateSections({
+        projLabel: document.getElementById('secProjLb').value,
+        projLabelEn: document.getElementById('secProjLbEn').value,
+        projTitle: document.getElementById('secProjTi').value,
+        projTitleEn: document.getElementById('secProjTiEn').value,
+        projDesc: document.getElementById('secProjDe').value,
+        projDescEn: document.getElementById('secProjDeEn').value
+      }); toast('项目区域已保存！');
+    }
+
+    function saveSecAbout() {
+      BlogData.updateSections({
+        aboutLabel: document.getElementById('secAbtLb').value,
+        aboutLabelEn: document.getElementById('secAbtLbEn').value,
+        aboutTitle: document.getElementById('secAbtTi').value,
+        aboutTitleEn: document.getElementById('secAbtTiEn').value
+      }); toast('关于区域标题已保存！');
+    }
+
+    function saveSecAboutDesc() {
+      BlogData.updateSections({
+        aboutDesc: document.getElementById('secAbtDe').value,
+        aboutDescEn: document.getElementById('secAbtDeEn').value
+      }); toast('关于区域描述已保存！');
+    }
+
+    // ========== ARTICLES ==========
+
+    function renderArts() {
+      const d = BlogData.getData(), el = document.getElementById('artList');
+      if (!d.articles.length) { el.innerHTML = '<li class="empty-state"><div class="empty-state-icon">📝</div><p>暂无文章</p></li>'; return; }
+      el.innerHTML = d.articles.map(a => `
+        <li class="item-row">
+          <div class="item-info"><h4>${a.title||a.titleEn}</h4><p>${a.category||a.categoryEn} · ${a.date} · ${a.readTime||a.readTimeEn}</p></div>
+          <div class="item-actions"><button class="btn btn-s btn-sm" onclick="editArt(${a.id})">编辑</button><button class="btn btn-d btn-sm" onclick="delArt(${a.id})">删除</button></div>
+        </li>`).join('');
+    }
+
+    function openArtModal(id=null) {
+      document.getElementById('artModal').classList.add('show'); document.getElementById('editArtId').value = id||'';
+      document.getElementById('artMTtl').textContent = id ? '编辑文章' : '新建文章';
+      if (id) {
+        const a = BlogData.getData().articles.find(x=>x.id===id); if(!a)return;
+        ['artT','artTEn','artCat','artCatEn','artSum','artSumEn','artCover','artRT','artRTEn'].forEach(id2 => {
+          const map={artT:'title',artTEn:'titleEn',artCat:'category',artCatEn:'categoryEn',artSum:'summary',artSumEn:'summaryEn',artCover:'coverImage',artRT:'readTime',artRTEn:'readTimeEn'};
+          document.getElementById(id2).value = a[map[id2]]||'';
+        });
+      } else { ['artT','artTEn','artCat','artCatEn','artSum','artSumEn','artCover','artRT','artRTEn'].forEach(i=>document.getElementById(i).value=''); }
+    }
+    function closeArtModal(){document.getElementById('artModal').classList.remove('show')}
+    function editArt(id){openArtModal(id)}
+
+    function saveArt(){
+      const id=document.getElementById('editArtId').value;
+      const art={title:document.getElementById('artT').value,titleEn:document.getElementById('artTEn').value,category:document.getElementById('artCat').value,categoryEn:document.getElementById('artCatEn').value,summary:document.getElementById('artSum').value,summaryEn:document.getElementById('artSumEn').value,coverImage:document.getElementById('artCover').value.trim(),readTime:document.getElementById('artRT').value,readTimeEn:document.getElementById('artRTEn').value};
+      if(id){BlogData.updateArticle(Number(id),art);toast('文章已更新！')}else{BlogData.addArticle(art);toast('文章已创建！')}
+      closeArtModal();renderArts();
+    }
+    function delArt(id){if(!confirm('确定删除？'))return;BlogData.deleteArticle(id);toast('已删除','err');renderArts()}
+
+    // ========== PROJECTS ==========
+
+    function renderProjs() {
+      const d = BlogData.getData(), el = document.getElementById('projList');
+      if (!d.projects.length) { el.innerHTML = '<li class="empty-state"><div class="empty-state-icon">🚀</div><p>暂无项目</p></li>'; return; }
+      el.innerHTML = d.projects.map(p=>`
+        <li class="item-row">
+          <div class="item-info"><h4>${p.name||p.nameEn}</h4><p>${p.tags.join(', ')}</p></div>
+          <div class="item-actions"><button class="btn btn-s btn-sm" onclick="editProj(${p.id})">编辑</button><button class="btn btn-d btn-sm" onclick="delProj(${p.id})">删除</button></div>
+        </li>`).join('');
+    }
+
+    function openProjModal(id=null){
+      document.getElementById('projModal').classList.add('show');document.getElementById('editProjId').value=id||'';
+      document.getElementById('projMTtl').textContent=id?'编辑项目':'新建项目';
+      if(id){const p=BlogData.getData().projects.find(x=>x.id===id);if(!p)return;
+        document.getElementById('projN').value=p.name||'';document.getElementById('projNEn').value=p.nameEn||'';
+        document.getElementById('projD').value=p.description||'';document.getElementById('projDEn').value=p.descriptionEn||'';
+        document.getElementById('projTags').value=p.tags.join(', ');document.getElementById('projUrl').value=p.url||'';
+        document.getElementById('projImg').value=p.image||'';
+      }else{['projN','projNEn','projD','projDEn','projTags','projUrl','projImg'].forEach(i=>document.getElementById(i).value='');}
+    }
+    function closeProjModal(){document.getElementById('projModal').classList.remove('show')}
+    function editProj(id){openProjModal(id)}
+
+    function saveProj(){
+      const id=document.getElementById('editProjId').value;
+      const proj={name:document.getElementById('projN').value,nameEn:document.getElementById('projNEn').value,description:document.getElementById('projD').value,descriptionEn:document.getElementById('projDEn').value,tags:document.getElementById('projTags').value.split(',').map(t=>t.trim()).filter(t=>t),url:document.getElementById('projUrl').value,image:document.getElementById('projImg').value.trim()};
+      if(id){BlogData.updateProject(Number(id),proj);toast('项目已更新！')}else{BlogData.addProject(proj);toast('项目已创建！')}
+      closeProjModal();renderProjs();
+    }
+    function delProj(id){if(!confirm('确定删除？'))return;BlogData.deleteProject(id);toast('已删除','err');renderProjs()}
+
+    // ========== ABOUT ==========
+
+    function saveAbout() {
+      BlogData.updateAbout({ text: document.getElementById('abtText').value, textEn: document.getElementById('abtTextEn').value });
+      toast('关于正文已保存！');
+    }
+
+    // ========== FOOTER ==========
+
+    function saveFooter() {
+      BlogData.updateFooter({ brandDesc: document.getElementById('ftBrandDe').value, brandDescEn: document.getElementById('ftBrandDeEn').value });
+      BlogData.updateSections({
+        footerLabel: document.getElementById('ftLabel').value,
+        footerLabelEn: document.getElementById('ftLabelEn').value,
+        footerTitle: document.getElementById('ftTitle').value,
+        footerTitleEn: document.getElementById('ftTitleEn').value,
+        footerNavTitle: document.getElementById('ftNavTi').value,
+        footerNavTitleEn: document.getElementById('ftNavTiEn').value,
+        footerSocialTitle: document.getElementById('ftSocTi').value,
+        footerSocialTitleEn: document.getElementById('ftSocTiEn').value
+      });
+      toast('页脚设置已保存！');
+    }
+
+    // ========== SITE CONFIG ==========
+
+    function saveSiteCfg() {
+      BlogData.updateSiteConfig({
+        siteName: document.getElementById('scName').value,
+        siteNameEn: document.getElementById('scNameEn').value,
+        copyright: document.getElementById('scCopyZh').value,
+        copyrightEn: document.getElementById('scCopyEn').value
+      }); toast('站点配置已保存！');
+    }
+
+    function resetData() { if(!confirm('确定重置所有数据吗？不可撤销！')) return; BlogData.resetToDefault(); loadP(cp); toast('数据已重置','err'); }
+
+    // Init
+    loadP('profile');
+  </script>
+</body>
+</html>
