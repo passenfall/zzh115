@@ -1,4 +1,6 @@
-display.html : 博客展示页面
+
+display.html : 博客展示页面；
+
 edit.html : 博客编辑页面
 ------
 
